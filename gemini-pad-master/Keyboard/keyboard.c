@@ -13,16 +13,10 @@
 #include "gpio.h"
 #include "rgb.h"
 #include "keyboard.h"
+#include "keyboard_tree.h"
 #include "MB85RC16.h"
 
-#define KEY1_BINDING            KEY_Z
-#define KEY2_BINDING            KEY_X
-#define KEY3_BINDING            KEY_C
-#define KEY4_BINDING            KEY_V
-#define KNOB_BINDING            KEY_ESC
-#define WHEEL_BINDING           KEY_ENTER
-
-uint8_t Keyboard_ReportBuffer[18];
+uint8_t Keyboard_ReportBuffer[USBD_CUSTOMHID_OUTREPORT_BUF_SIZE];
 lefl_bit_array_t Keyboard_KeyArray;
 
 uint8_t Keyboard_EC11_Flag=0;
@@ -31,23 +25,11 @@ uint16_t Keyboard_Advanced_SHIFT_IDs[ADVANCED_KEY_NUM];
 uint16_t Keyboard_SHIFT_IDs[KEY_NUM];
 uint16_t Keyboard_Advanced_ALPHA_IDs[ADVANCED_KEY_NUM];
 uint16_t Keyboard_ALPHA_IDs[KEY_NUM];
+uint16_t Keyboard_Tree_IDs[3][KEYBOARD_TREE_BUFFER_MAX_SIZE];
 uint8_t Keyboard_TargetAdvancedKey;
-bool Keyboard_SHIFT_Flag=false;
-bool Keyboard_ALPHA_Flag=false;
-extern bool sendreport;
-extern bool sendreport_ready;
-//SHIFT, ALPHA, KNOB, WHEEL, KNOB Rotation direction, WHEEL Rotation direction
 lefl_key_t Keyboard_Keys[KEY_NUM];
 lefl_advanced_key_t Keyboard_AdvancedKeys[ADVANCED_KEY_NUM];
 
-void report_start(void*e)
-{
-    if(sendreport_ready)
-    {
-        sendreport_ready=false;
-        sendreport=true;
-    }
-}
 
 void Keyboard_Init()
 {
@@ -60,14 +42,14 @@ void Keyboard_Init()
     lefl_key_attach(&KEY_ALPHA, KEY_EVENT_DOWN, NULL);
     for (uint8_t i = 0; i < ADVANCED_KEY_NUM; i++)
     {
-        lefl_key_attach(&(Keyboard_AdvancedKeys[i].key), KEY_EVENT_UP, report_start);
+        lefl_key_attach(&(Keyboard_AdvancedKeys[i].key), KEY_EVENT_UP, NULL);
     }
-    lefl_key_attach(&(KEY_KNOB), KEY_EVENT_UP, report_start);
-    lefl_key_attach(&(KEY_WHEEL), KEY_EVENT_UP, report_start);
-    lefl_key_attach(&(KEY_KNOB_CLOCKWISE), KEY_EVENT_UP, report_start);
-    lefl_key_attach(&(KEY_KNOB_ANTICLOCKWISE), KEY_EVENT_UP, report_start);
-    lefl_key_attach(&(KEY_WHEEL_CLOCKWISE), KEY_EVENT_UP, report_start);
-    lefl_key_attach(&(KEY_WHEEL_ANTICLOCKWISE), KEY_EVENT_UP, report_start);
+    lefl_key_attach(&(KEY_KNOB), KEY_EVENT_UP, NULL);
+    lefl_key_attach(&(KEY_WHEEL), KEY_EVENT_UP, NULL);
+    lefl_key_attach(&(KEY_KNOB_CLOCKWISE), KEY_EVENT_UP, NULL);
+    lefl_key_attach(&(KEY_KNOB_ANTICLOCKWISE), KEY_EVENT_UP, NULL);
+    lefl_key_attach(&(KEY_WHEEL_CLOCKWISE), KEY_EVENT_UP, NULL);
+    lefl_key_attach(&(KEY_WHEEL_ANTICLOCKWISE), KEY_EVENT_UP, NULL);
 
     Keyboard_ID_Recovery();
 }
@@ -123,7 +105,7 @@ void Keyboard_SendReport()
     lefl_bit_array_set(&Keyboard_KeyArray, KEY4_BINDING, !(rand()%16));
     */
     memset(Keyboard_ReportBuffer,0,USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);
-    if(Keyboard_SHIFT_Flag)
+    if(KEY_SHIFT.state)
     {
         for (uint8_t i = 0; i < ADVANCED_KEY_NUM; i++)
         {
@@ -136,11 +118,14 @@ void Keyboard_SendReport()
             Keyboard_ReportBuffer[0]|= Keyboard_Keys[i].state?((Keyboard_SHIFT_IDs[i]>>8) & 0xFF):0;
             lefl_bit_array_set_or(&Keyboard_KeyArray, Keyboard_SHIFT_IDs[i] & 0xFF, Keyboard_Keys[i].state);
         }
-
+        for (uint16_t i = ADVANCED_KEY_NUM+KEY_NUM; i < KEYBOARD_TREE_BUFFER_MAX_SIZE; i++)
+        {
+            lefl_bit_array_set_or(&Keyboard_KeyArray, Keyboard_Tree_IDs[0][i] & 0xFF, lefl_bit_array_get(&Keyboard_Tree_ReportBitmap, i));
+        }
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,Keyboard_ReportBuffer,USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);
         return;
     }
-    if(Keyboard_ALPHA_Flag)
+    if(KEY_ALPHA.state)
     {
         for (uint8_t i = 0; i < ADVANCED_KEY_NUM; i++)
         {
@@ -153,6 +138,10 @@ void Keyboard_SendReport()
             Keyboard_ReportBuffer[0]|= Keyboard_Keys[i].state?((Keyboard_ALPHA_IDs[i]>>8) & 0xFF):0;
             lefl_bit_array_set_or(&Keyboard_KeyArray, Keyboard_ALPHA_IDs[i] & 0xFF, Keyboard_Keys[i].state);
         }
+        for (uint16_t i = ADVANCED_KEY_NUM+KEY_NUM; i < KEYBOARD_TREE_BUFFER_MAX_SIZE; i++)
+        {
+            lefl_bit_array_set_or(&Keyboard_KeyArray, Keyboard_Tree_IDs[0][i] & 0xFF, lefl_bit_array_get(&Keyboard_Tree_ReportBitmap, i));
+        }
         USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,Keyboard_ReportBuffer,USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);
         return;
     }
@@ -160,6 +149,10 @@ void Keyboard_SendReport()
     {
         Keyboard_ReportBuffer[0]|= Keyboard_AdvancedKeys[i].key.state?((Keyboard_AdvancedKeys[i].key.id>>8) & 0xFF):0;
         lefl_bit_array_set_or(&Keyboard_KeyArray, Keyboard_AdvancedKeys[i].key.id & 0xFF, Keyboard_AdvancedKeys[i].key.state);
+    }
+    for (uint16_t i = ADVANCED_KEY_NUM+KEY_NUM; i < KEYBOARD_TREE_BUFFER_MAX_SIZE; i++)
+    {
+        lefl_bit_array_set_or(&Keyboard_KeyArray, Keyboard_Tree_IDs[0][i] & 0xFF, lefl_bit_array_get(&Keyboard_Tree_ReportBitmap, i));
     }
     Keyboard_ReportBuffer[0]|=KEY_KNOB.state?((KEY_KNOB.id>>8) & 0xFF):0;
     Keyboard_ReportBuffer[0]|=KEY_WHEEL.state?((KEY_WHEEL.id>>8) & 0xFF):0;
@@ -214,7 +207,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
     if(htim == &htim3)
     {
-        Keyboard_Wheel_Flag=5;
+        Keyboard_Wheel_Flag=6;
         if(htim->Instance->CR1==0x01)
         {
             lefl_key_update(&KEY_WHEEL_CLOCKWISE, true);
@@ -229,7 +222,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
     if(htim == &htim8)
     {
-        Keyboard_EC11_Flag=5;
+        Keyboard_EC11_Flag=6;
         if(htim->Instance->CR1==0x01)
         {
             lefl_key_update(&KEY_KNOB_CLOCKWISE, false);

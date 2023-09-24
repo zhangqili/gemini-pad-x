@@ -62,6 +62,8 @@ void fezui_init()
     lefl_key_attach(&(Keyboard_AdvancedKeys[2].key), KEY_EVENT_DOWN, LAMBDA(void,(void*k){fezui_keytotalcounts[2]++;key_triggered_count++;}));
     lefl_key_attach(&(Keyboard_AdvancedKeys[3].key), KEY_EVENT_DOWN, LAMBDA(void,(void*k){fezui_keytotalcounts[3]++;key_triggered_count++;}));
 
+    lefl_bit_array_init(&Keyboard_Tree_ReportBitmap, Keyboard_Tree_ReportBuffer, 128);
+
     menupage_init();
     settingspage_init();
     calibrationpage_init();
@@ -71,6 +73,7 @@ void fezui_init()
     knobconfigpage_init();
     rgbconfigpage_init();
     displayconfigpage_init();
+    externalkeyspage_init();
 
     Analog_Read();
     Keyboard_ID_Recovery();
@@ -84,10 +87,6 @@ void fezui_init()
 
 void fezui_timer_handler()
 {
-    for (uint8_t i = 0; i < KEY_NUM; i++)
-    {
-        lefl_key_update(Keyboard_Keys+i, key_buffer[i+ADVANCED_KEY_NUM]);
-    }
     lefl_link_frame_logic(&mainframe);
     fezui_cursor_move(&fezui ,&cursor, &target_cursor);
 

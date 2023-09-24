@@ -100,6 +100,13 @@ void lefl_bit_array_shift(lefl_bit_array_t* arr, int16_t n)
     }
 }
 
+void lefl_bit_array_copy(lefl_bit_array_t* to, int16_t x,lefl_bit_array_t* from, int16_t y, int16_t len)
+{
+    for (int16_t i = 0; i < len; i++)
+    {
+        lefl_bit_array_set(to, x+i, lefl_bit_array_get(from, y+i));
+    }
+}
 
 lefl_stack_elm_t lefl_stack_get(lefl_stack_t* stack, lefl_stack_elm_t j)
 {

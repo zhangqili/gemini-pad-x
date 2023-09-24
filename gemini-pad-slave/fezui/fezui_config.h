@@ -19,7 +19,7 @@
 #define ITEM_HEIGHT           14
 #define HISTORY_LENGTH        129
 
-//#define _FPS_ON
+#define _FPS_ON
 
 #define roll()                rand()%2;
 
@@ -49,6 +49,13 @@ void menupage_logic(void *page);
 void menupage_draw(void *page);
 void menupage_load(void *page);
 void main_menu_cb(void *menu);
+
+
+extern lefl_page_t externalkeyspage;
+void externalkeyspage_init();
+void externalkeyspage_logic(void *page);
+void externalkeyspage_draw(void *page);
+void externalkeyspage_load(void *page);
 
 extern lefl_page_t settingspage;
 void settingspage_init();

@@ -60,7 +60,7 @@ lefl_advanced_key_t* current_config_advanced_key;
 static fezui_progressbar_t mainbar = {.max=4096,.min=0,.orientation=ORIENTATION_VERTICAL};
 static fezui_progressbar_t subbar = {.max=1,.min=0,.orientation=ORIENTATION_VERTICAL};
 static fezui_scrolling_text_t scrolling_text;
-static char binding_text[128];
+static char binding_text[256];
 
 void keyconfig_digital_mode_menu_cb(void* m)
 {
@@ -431,7 +431,7 @@ static void mode_update(int8_t x)
 
 void advancedconfigpage_load(void *page)
 {
-    keyid_prase(current_config_advanced_key->key.id, binding_text, 128);
+    keyid_prase(current_config_advanced_key->key.id, binding_text, 256);
     fezui_scrolling_text_init(&scrolling_text, 78, 0.2, u8g2_font_4x6_mr, binding_text);
     lefl_key_attach(&KEY_KNOB, KEY_EVENT_DOWN, LAMBDA(void,(void*k)
     {

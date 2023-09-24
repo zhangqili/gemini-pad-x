@@ -10,6 +10,7 @@
 
 #include "lefl.h"
 #include "usb_hid_keys.h"
+#include "usbd_conf.h"
 
 #define ADVANCED_KEY_NUM        4
 #define KEY_NUM                 8
@@ -23,14 +24,8 @@
 #define WHEEL                   (!HAL_GPIO_ReadPin(WHEEL_GPIO_Port,WHEEL_Pin))
 #define EC11_A                  HAL_GPIO_ReadPin(EC11_A_GPIO_Port,EC11_A_Pin)
 #define EC11_B                  HAL_GPIO_ReadPin(EC11_B_GPIO_Port,EC11_B_Pin)
-#define CharacterID(x)          (x-'a'+4)
 
-#define FUNCTION_KEY1_BINDING   0
-#define FUNCTION_KEY2_BINDING   0
-#define FUNCTION_KEY3_BINDING   0
-#define FUNCTION_KEY4_BINDING   0
-
-extern uint8_t Keyboard_ReportBuffer[18];
+extern uint8_t Keyboard_ReportBuffer[USBD_CUSTOMHID_OUTREPORT_BUF_SIZE];
 extern lefl_bit_array_t Keyboard_KeyArray;
 extern uint8_t Keyboard_EC11_Flag;
 extern uint8_t Keyboard_Wheel_Flag;
@@ -45,6 +40,7 @@ extern uint8_t Keyboard_TargetAdvancedKey;
 
 extern lefl_key_t Keyboard_Keys[KEY_NUM];
 extern lefl_advanced_key_t Keyboard_AdvancedKeys[ADVANCED_KEY_NUM];
+
 #define KEY_SHIFT               Keyboard_Keys[0]
 #define KEY_ALPHA               Keyboard_Keys[1]
 #define KEY_KNOB                Keyboard_Keys[2]

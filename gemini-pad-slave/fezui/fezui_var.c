@@ -23,6 +23,10 @@ uint16_t Keyboard_SHIFT_IDs[KEY_NUM];
 uint16_t Keyboard_Advanced_ALPHA_IDs[ADVANCED_KEY_NUM];
 uint16_t Keyboard_ALPHA_IDs[KEY_NUM];
 
+lefl_bit_array_t Keyboard_Tree_ReportBitmap;
+lefl_bit_array_unit_t Keyboard_Tree_ReportBuffer[KEYBOARD_TREE_BUFFER_MAX_SIZE/(8*sizeof(lefl_bit_array_unit_t))];
+uint16_t Keyboard_Tree_IDs[3][KEYBOARD_TREE_BUFFER_MAX_SIZE];
+
 uint32_t fezui_keytotalcounts[ADVANCED_KEY_NUM]={0};
 uint32_t fezui_keyinitcounts[ADVANCED_KEY_NUM]={0};
 
@@ -75,7 +79,7 @@ lefl_bit_array_unit_t lines2_data[4];
 lefl_bit_array_unit_t lines3_data[4];
 lefl_bit_array_unit_t lines4_data[4];
 
-const char *hid_usage_names[108] =
+const char *hid_usage_names[138] =
 {
     "Left Control",
     "Left Shift",
@@ -185,6 +189,36 @@ const char *hid_usage_names[108] =
     "Keypad 9",
     "Keypad 0",
     "Keypad .",
+    "Europe 2 (Note 2)",
+    "App",
+    "Keyboard Power",
+    "Keypad =",
+    "F13",
+    "F14",
+    "F15",
+    "F16",
+    "F17",
+    "F18",
+    "F19",
+    "F20",
+    "F21",
+    "F22",
+    "F23",
+    "F24",
+    "Execute",
+    "Help",
+    "Menu",
+    "Select",
+    "Stop",
+    "Again",
+    "Undo",
+    "Cut",
+    "Copy",
+    "Paste",
+    "Find",
+    "Mute",
+    "Volume Up",
+    "Volume Down"
 };
 
 

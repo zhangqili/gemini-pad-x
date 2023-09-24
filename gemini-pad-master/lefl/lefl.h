@@ -17,23 +17,6 @@ extern "C" {
 #include "math.h"
 #include "lefl_macro.h"
 
-    /*
-     * lefl_cursor.c
-     */
-
-    typedef struct __fezui_cursor_t
-    {
-        float x;
-        float y;
-        float w;
-        float h;
-    } fezui_cursor_t;
-
-    extern fezui_cursor_t cursor;
-    extern fezui_cursor_t target_cursor;
-
-    void fezui_cursor_move(fezui_cursor_t* c, fezui_cursor_t* tc);
-    void fezui_cursor_set(fezui_cursor_t* c, float x, float y, float w, float h);
 
     /*
      * lefl_menu.c
@@ -43,8 +26,8 @@ extern "C" {
     typedef struct __lefl_menu_t
     {
         const char* *items;
-        int8_t selected_index;
-        uint8_t len;
+        int16_t selected_index;
+        uint16_t len;
         void (*menu_cb)(void* menu);
     } lefl_menu_t;
 
@@ -206,6 +189,7 @@ extern "C" {
     void lefl_bit_array_set_or(lefl_bit_array_t* arr, int16_t n,bool b);
     bool lefl_bit_array_get(lefl_bit_array_t* arr, int16_t n);
     void lefl_bit_array_shift(lefl_bit_array_t* arr, int16_t n);
+    void lefl_bit_array_copy(lefl_bit_array_t* to, int16_t x,lefl_bit_array_t* from, int16_t y, int16_t len);
 
     typedef uint16_t lefl_stack_elm_t;
 

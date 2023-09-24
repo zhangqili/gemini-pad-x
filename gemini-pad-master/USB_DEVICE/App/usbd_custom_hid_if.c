@@ -110,7 +110,7 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
      0x29, 0xe7,                    //   USAGE_MAXIMUM (Keyboard Right GUI)
      0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
      0x25, 0x01,                    //   LOGICAL_MAXIMUM (1)
-     0x95, 0x78,                    //   REPORT_COUNT (120)
+     0x95, 0xA8,                    //   REPORT_COUNT (168)
      0x75, 0x01,                    //   REPORT_SIZE (1)
      0x81, 0x02,                    //   INPUT (Data,Var,Abs)
   /* USER CODE END 0 */

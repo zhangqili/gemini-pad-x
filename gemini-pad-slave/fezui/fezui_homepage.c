@@ -157,7 +157,7 @@ void homepage_draw(void *page)
 
 
     u8g2_SetFont(&(fezui.u8g2), u8g2_font_micro_tr);
-    sprintf(fezui_buffer,"%d",fezui_adc_conversion_count);
+    sprintf(fezui_buffer,"%d",fezui_debug);
     u8g2_DrawStr(&(fezui.u8g2),64,10,fezui_buffer);
 
     u8g2_SetFont(&(fezui.u8g2), u8g2_font_micro_tr);

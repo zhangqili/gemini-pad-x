@@ -12,7 +12,7 @@
           $this; \
 })
 
-#define ROUND(x) ((size_t)((x)+0.5f))
+#define ROUND(x) ((int)((x)+0.5f))
 
 #define BIT(x) (1<<x)
 

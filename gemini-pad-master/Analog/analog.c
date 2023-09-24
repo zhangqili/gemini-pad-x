@@ -74,7 +74,7 @@ void Analog_Init()
     }
     for (uint8_t i = 0; i < ADVANCED_KEY_NUM; i++)
     {
-        Keyboard_AdvancedKeys[i].lower_bound=ADC_Sums[i]/(float)ANALOG_INIT_SCAN_COUNT;
+        Keyboard_AdvancedKeys[(i+3)%ADVANCED_KEY_NUM].lower_bound=ADC_Sums[i]/(float)ANALOG_INIT_SCAN_COUNT;
         ADC_Sums[i]=0.0;
     }
 
@@ -94,7 +94,7 @@ void Analog_Init()
 
     for (uint8_t i = 0; i < ADVANCED_KEY_NUM; i++)
     {
-        lefl_advanced_key_set_deadzone(Keyboard_AdvancedKeys+i,0.01,0.1);
+        lefl_advanced_key_set_deadzone(Keyboard_AdvancedKeys+i,Keyboard_AdvancedKeys[i].upper_deadzone,Keyboard_AdvancedKeys[i].lower_deadzone);
     }
     Analog_Save();
 
@@ -163,12 +163,6 @@ void Analog_Save()
     eeprom_buzy = true;
     for (uint16_t i = 0; i < ADVANCED_KEY_NUM; i++)
     {
-        Keyboard_AdvancedKeys[i].mode=LEFL_KEY_ANALOG_RAPID_MODE;
-        Keyboard_AdvancedKeys[i].trigger_distance=0.03,
-        Keyboard_AdvancedKeys[i].release_distance=0.03,
-        Keyboard_AdvancedKeys[i].schmitt_parameter=0.01,
-        Keyboard_AdvancedKeys[i].trigger_speed=0.01,
-        Keyboard_AdvancedKeys[i].release_speed=-0.01,
         MB85RC16_WriteWord (i*64+ADVANCED_KEY_CONFIG_ADDRESS,       Keyboard_AdvancedKeys[i].key.id);
         MB85RC16_WriteByte (i*64+ADVANCED_KEY_CONFIG_ADDRESS+2,     Keyboard_AdvancedKeys[i].mode);
         MB85RC16_WriteFloat(i*64+ADVANCED_KEY_CONFIG_ADDRESS+3,     Keyboard_AdvancedKeys[i].trigger_distance);

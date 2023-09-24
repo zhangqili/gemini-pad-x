@@ -152,6 +152,7 @@ void Communication_Unpack(UART_HandleTypeDef *huart)
                         i+=2;
                         break;
                     case PROTOCOL_KEYS1:
+                        /*
                         key_buffer[4]=(USART1_RX_Buffer[i+1]&BIT(7));
                         key_buffer[5]=(USART1_RX_Buffer[i+1]&BIT(6));
                         key_buffer[6]=(USART1_RX_Buffer[i+1]&BIT(5));
@@ -160,6 +161,15 @@ void Communication_Unpack(UART_HandleTypeDef *huart)
                         key_buffer[9]=(USART1_RX_Buffer[i+1]&BIT(2));
                         key_buffer[10]=(USART1_RX_Buffer[i+1]&BIT(1));
                         key_buffer[11]=(USART1_RX_Buffer[i+1]&BIT(0));
+                        */
+                        lefl_key_update(Keyboard_Keys+0, (USART1_RX_Buffer[i+1]&BIT(7)));
+                        lefl_key_update(Keyboard_Keys+1, (USART1_RX_Buffer[i+1]&BIT(6)));
+                        lefl_key_update(Keyboard_Keys+2, (USART1_RX_Buffer[i+1]&BIT(5)));
+                        lefl_key_update(Keyboard_Keys+3, (USART1_RX_Buffer[i+1]&BIT(4)));
+                        lefl_key_update(Keyboard_Keys+4, (USART1_RX_Buffer[i+1]&BIT(3)));
+                        lefl_key_update(Keyboard_Keys+5, (USART1_RX_Buffer[i+1]&BIT(2)));
+                        lefl_key_update(Keyboard_Keys+6, (USART1_RX_Buffer[i+1]&BIT(1)));
+                        lefl_key_update(Keyboard_Keys+7, (USART1_RX_Buffer[i+1]&BIT(0)));
                         i+=2;
                         break;
                     case PROTOCOL_ANALOG1_RAW:

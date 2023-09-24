@@ -119,6 +119,23 @@ typedef enum
     CMD_NA_0E,
     CMD_NA_0F,
     //
+    CMD_KEYBOARD_TREE_SCAN,
+    CMD_NA_11,
+    CMD_NA_12,
+    CMD_NA_13,
+    CMD_NA_14,
+    CMD_NA_15,
+    CMD_NA_16,
+    CMD_NA_17,
+    CMD_NA_18,
+    CMD_NA_19,
+    CMD_NA_1A,
+    CMD_NA_1B,
+    CMD_NA_1C,
+    CMD_NA_1D,
+    CMD_NA_1E,
+    CMD_NA_1F,
+    //
     CMD_RESET=0xFF,
 } USART_CMD;
 

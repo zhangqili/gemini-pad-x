@@ -12,11 +12,11 @@
 lefl_page_t menupage={menupage_logic,menupage_draw,menupage_load};
 
 lefl_menu_t mainmenu;
-const char* mainmenu_items[] = {"Home","Oscilloscope","Statistic","Settings"};
+const char* mainmenu_items[] = {"Oscilloscope","Statistic","External keys","Settings"};
 
 
 float menu_offset;
-
+/*
 lefl_animation_base_t menuanimation={
         .easing_func=lefl_animation_cubic_ease,
         .from=100,
@@ -28,7 +28,7 @@ lefl_animation_base_t menuanimation={
         .mode=LEFL_ANIMATION_EASE_OUT,
         .target=&menu_offset,
 };
-
+*/
 void menupage_init()
 {
     lefl_menu_init(&mainmenu, mainmenu_items, sizeof(mainmenu_items)/sizeof(const char*), main_menu_cb);
@@ -36,13 +36,14 @@ void menupage_init()
 
 void menupage_logic(void *page)
 {
-    lefl_animation_tick(&menuanimation);
+    //lefl_animation_tick(&menuanimation);
     fezui_cursor_set(
             &target_cursor ,
             3+(int16_t)menu_offset,
             mainmenu.selected_index*ITEM_HEIGHT+3 ,
             strlen(mainmenu.items[mainmenu.selected_index])*6+6,
             ITEM_HEIGHT);
+    CONVERGE_TO_ROUNDED(menu_offset,0,fezui.speed);
     Communication_Add8(USART1, PROTOCOL_CMD,CMD_REPORT_STOP);
     Communication_USART1_Transmit();
 }
@@ -62,13 +63,15 @@ void main_menu_cb(void *menu)
     switch (((lefl_menu_t*)menu)->selected_index)
     {
     case 0:
-        lefl_link_frame_go_back(&mainframe);
-        break;
-    case 1:
         lefl_link_frame_navigate(&mainframe, &oscilloscopepage);
         break;
-    case 2:
+    case 1:
     	lefl_link_frame_navigate(&mainframe, &statisticpage);
+        break;
+    case 2:
+        Communication_Add8(USART1, PROTOCOL_CMD,CMD_KEYBOARD_TREE_SCAN);
+        Communication_USART1_Transmit();
+        lefl_link_frame_navigate(&mainframe, &externalkeyspage);
         break;
     case 3:
         lefl_link_frame_navigate(&mainframe, &settingspage);
@@ -80,10 +83,8 @@ void main_menu_cb(void *menu)
 
 void menupage_load(void *page)
 {
-    Communication_Add8(USART1, PROTOCOL_CMD,CMD_FLAG_CLEAR);
-    Communication_Add8(USART1, PROTOCOL_CMD,CMD_REPORT_STOP);
-    Communication_USART1_Transmit();
-    lefl_animation_begin(&menuanimation);
+    menu_offset=WIDTH;
+    //lefl_animation_begin(&menuanimation);
 
     lefl_key_attach(&KEY_KNOB, KEY_EVENT_DOWN, LAMBDA(void,(void*k){lefl_link_frame_go_back(&mainframe);fezui_cursor_set(&cursor ,0 ,0 ,WIDTH ,HEIGHT);}));
     lefl_key_attach(&KEY_WHEEL, KEY_EVENT_DOWN, LAMBDA(void,(void*k){lefl_menu_click(&mainmenu);}));

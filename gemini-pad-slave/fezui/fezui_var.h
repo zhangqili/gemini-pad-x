@@ -9,6 +9,10 @@
 #define FEZUI_VAR_H_
 #include "fezui.h"
 
+#define KEYBOARD_CHILD_NUM 4
+#define KEYBOARD_CHILD_KEY_MAX_NUM 32
+#define KEYBOARD_TREE_BUFFER_MAX_SIZE 256
+
 extern bool eeprom_enable;
 extern const uint8_t fez_font_6x10_m[204] U8G2_FONT_SECTION("fez_font_6x10_m");
 extern fezui_t fezui;
@@ -22,6 +26,11 @@ extern uint16_t Keyboard_Advanced_SHIFT_IDs[ADVANCED_KEY_NUM];
 extern uint16_t Keyboard_SHIFT_IDs[KEY_NUM];
 extern uint16_t Keyboard_Advanced_ALPHA_IDs[ADVANCED_KEY_NUM];
 extern uint16_t Keyboard_ALPHA_IDs[KEY_NUM];
+
+extern lefl_bit_array_t Keyboard_Tree_ReportBitmap;
+extern lefl_bit_array_unit_t Keyboard_Tree_ReportBuffer[KEYBOARD_TREE_BUFFER_MAX_SIZE/(8*sizeof(lefl_bit_array_unit_t))];
+extern uint16_t Keyboard_Tree_IDs[3][KEYBOARD_TREE_BUFFER_MAX_SIZE];
+
 
 #define KEY_SHIFT               Keyboard_Keys[0]
 #define KEY_ALPHA               Keyboard_Keys[1]
@@ -78,6 +87,6 @@ extern lefl_bit_array_unit_t lines2_data[4];
 extern lefl_bit_array_unit_t lines3_data[4];
 extern lefl_bit_array_unit_t lines4_data[4];
 extern lefl_loop_array_t KPS_queue;
-extern const char *hid_usage_names[108];
+extern const char *hid_usage_names[138];
 
 #endif /* FEZUI_VAR_H_ */

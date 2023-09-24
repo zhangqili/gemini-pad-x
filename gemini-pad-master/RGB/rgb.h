@@ -18,7 +18,7 @@
 #define RGB_RESET_LENGTH        (400)
 #define RGB_BUFFER_LENGTH       (RGB_RESET_LENGTH+3*8*(RGB_NUM))
 
-#define RGB_Start() HAL_TIM_PWM_Start_DMA(&htim2,TIM_CHANNEL_2,RGB_Buffer,RGB_BUFFER_LENGTH);
+#define RGB_Start() HAL_TIM_PWM_Start_DMA(&htim2,TIM_CHANNEL_2,(uint32_t*)RGB_Buffer,RGB_BUFFER_LENGTH);
 
 #define USE_RGB
 //#define RGB_Start() HAL_TIMEx_PWMN_Start_DMA(&htim8,TIM_CHANNEL_3,RGB_buffer,RGB_BUFFER_LENGTH);
@@ -60,7 +60,7 @@ typedef struct __rgb_global_config_t
 
 
 #ifdef USE_RGB
-extern uint32_t RGB_Buffer[RGB_BUFFER_LENGTH];
+extern uint8_t RGB_Buffer[RGB_BUFFER_LENGTH];
 #endif
 extern lefl_color_rgb_t RGB_Colors[RGB_NUM];
 extern rgb_individual_config_t RGB_Configs[RGB_NUM];

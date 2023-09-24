@@ -26,8 +26,8 @@ extern "C" {
     typedef struct __lefl_menu_t
     {
         const char* *items;
-        int8_t selected_index;
-        uint8_t len;
+        int16_t selected_index;
+        uint16_t len;
         void (*menu_cb)(void* menu);
     } lefl_menu_t;
 

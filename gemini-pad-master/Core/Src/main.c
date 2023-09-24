@@ -34,11 +34,13 @@
 #include "analog.h"
 #include "rgb.h"
 #include "keyboard.h"
+#include "keyboard_tree.h"
 #include "lefl.h"
 #include "flash_address.h"
 #include "MB85RC16.h"
 #include "communication.h"
 #include "usbd_custom_hid_if.h"
+#include "keyboard_tree.h"
 
 /* USER CODE END Includes */
 
@@ -61,10 +63,15 @@
 
 /* USER CODE BEGIN PV */
 
-uint32_t count=0;
+uint8_t count=0;
 uint8_t cmd_buffer;
 bool sendreport=true;
 bool sendreport_ready=false;
+uint8_t spi_tx[8]="hello";
+uint8_t spi_rx[8];
+uint8_t spi_tx1[8]="world";
+uint8_t spi_rx1[8];
+uint8_t spi_flag;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -119,8 +126,10 @@ int main(void)
   MX_SPI3_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  lefl_bit_array_init(&Keyboard_KeyArray, (size_t*)(Keyboard_ReportBuffer+2), 120);
+
+  lefl_bit_array_init(&Keyboard_KeyArray, (size_t*)(Keyboard_ReportBuffer+2), 168);
   Keyboard_Init();
+  Keyboard_Tree_Init();
   RGB_Init();
   Analog_Recovery();
   RGB_Recovery();
@@ -130,6 +139,10 @@ int main(void)
   //HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
 
   //Analog_Init();
+  HAL_GPIO_WritePin(SPI2_CS1_GPIO_Port, SPI2_CS1_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SPI2_CS2_GPIO_Port, SPI2_CS2_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SPI2_CS3_GPIO_Port, SPI2_CS3_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SPI2_CS4_GPIO_Port, SPI2_CS4_Pin, GPIO_PIN_SET);
   RGB_Flash();
   RGB_TurnOff();
   HAL_TIM_Base_Start_IT(&htim6);
@@ -140,40 +153,56 @@ int main(void)
   Communication_Enable(&huart1,USART1_RX_Buffer,BUFFER_LENGTH);
 
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_Buffer, ADVANCED_KEY_NUM);
+  //HAL_SPI_TransmitReceive_IT(&hspi3, spi_tx1, spi_rx1, 1);
+  //HAL_SPI_Receive_IT(&hspi2, spi_rx, 8);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      //adccount++;
-      //RGB_Colors[0].R=ADC_Values[0]-2800;
       HAL_Delay(1);
-      if(cmd_buffer)
+
+      switch (cmd_buffer)
       {
-          switch (cmd_buffer)
-          {
-              case CMD_CALIBRATION_START:
-                  memset(Keyboard_ReportBuffer,0,sizeof(Keyboard_ReportBuffer)/sizeof(uint8_t));
-                  HAL_TIM_Base_Stop_IT(&htim7);
-                  HAL_ADC_Stop_DMA(&hadc1);
-                  Analog_Init();
-                  HAL_TIM_Base_Start_IT(&htim7);
-                  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_Buffer, ADVANCED_KEY_NUM);
-                  break;
-              case CMD_ANALOG_READ:
-                  Analog_Recovery();
-                  break;
-              case CMD_ID_READ:
-                  Keyboard_ID_Recovery();
-                  break;
-              case CMD_RGB_READ:
-                  RGB_Recovery();
-                  break;
-              default:
-                  break;
-          }
-          cmd_buffer=CMD_NULL;
+          case CMD_CALIBRATION_START:
+              memset(Keyboard_ReportBuffer,0,sizeof(Keyboard_ReportBuffer)/sizeof(uint8_t));
+              HAL_TIM_Base_Stop_IT(&htim7);
+              HAL_ADC_Stop_DMA(&hadc1);
+              Analog_Init();
+              HAL_TIM_Base_Start_IT(&htim7);
+              HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_Buffer, ADVANCED_KEY_NUM);
+              break;
+          case CMD_ANALOG_READ:
+              Analog_Recovery();
+              break;
+          case CMD_ID_READ:
+              Keyboard_ID_Recovery();
+              break;
+          case CMD_RGB_READ:
+              RGB_Recovery();
+              break;
+          case CMD_KEYBOARD_TREE_SCAN:
+              Keyboard_Tree_BaseStatus=KEYBOARD_TNODE_DETECT;
+              break;
+          default:
+              cmd_buffer=CMD_NULL;
+              break;
+      }
+
+      switch(Keyboard_Tree_BaseStatus)
+      {
+          case KEYBOARD_TNODE_CONNECTED:
+              break;
+          case KEYBOARD_TNODE_DETECT:
+              Keyboard_Tree_Detect();
+              break;
+          case KEYBOARD_TNODE_READY:
+              break;
+          case KEYBOARD_TNODE_ACTIVE:
+          default:
+              break;
       }
     /* USER CODE END WHILE */
 
@@ -195,11 +224,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
@@ -226,7 +254,7 @@ void SystemClock_Config(void)
                               |RCC_PERIPHCLK_ADC12;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInit.Adc12ClockSelection = RCC_ADC12PLLCLK_DIV1;
-  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
+  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_SYSCLK;
   PeriphClkInit.USBClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
   PeriphClkInit.Tim8ClockSelection = RCC_TIM8CLK_HCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
@@ -242,9 +270,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   {
 
     Keyboard_Scan();
+    switch(Keyboard_Tree_BaseStatus)
+    {
+        case KEYBOARD_TNODE_CONNECTED:
+            break;
+        case KEYBOARD_TNODE_DETECT:
+            break;
+        case KEYBOARD_TNODE_READY:
+            break;
+        case KEYBOARD_TNODE_ACTIVE:
+            Keyboard_Tree_Scan();
+            Keyboard_Tree_Report();
+            break;
+        default:
+            break;
+    }
     Analog_Average();
     Analog_Check();
-    if(sendreport)
+    if(!HAL_GPIO_ReadPin(MENU_GPIO_Port, MENU_Pin))
         Keyboard_SendReport();
     Communication_Pack();
     if(eeprom_buzy)
@@ -259,6 +302,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
     RGB_Update();
     Analog_Clean();
+
   }
 
   if (htim->Instance==TIM6)

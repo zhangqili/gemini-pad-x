@@ -7,6 +7,7 @@
 #include "main.h"
 #include "communication.h"
 #include "keyboard.h"
+#include "keyboard_tree.h"
 #include "analog.h"
 #include "string.h"
 #include "lefl.h"
@@ -20,6 +21,8 @@ uint16_t USART1_RX_Count=0;
 extern bool sendreport;
 extern bool sendreport_ready;
 extern uint8_t cmd_buffer;
+extern uint8_t spi_flag;
+extern uint8_t spi_rx[8];
 
 extern DMA_HandleTypeDef hdma_usart1_rx;
 
@@ -165,7 +168,7 @@ void Communication_Pack()
     Communication_Add32(USART1, PROTOCOL_ANALOG4_RAW,Keyboard_AdvancedKeys[3].raw);
     Communication_Add8(USART1, PROTOCOL_SCAN_COUNT, ADC_Conversion_Count);
 
-    //Communication_Add32(USART1, PROTOCOL_DEBUG_FLOAT,Keyboard_AdvancedKeys[1].value);
+    Communication_Add8(USART1, PROTOCOL_DEBUG,(uint8_t)(Keyboard_Tree_BaseStatus));
     //Communication_Add(3,4);
 }
 
@@ -190,17 +193,6 @@ void Communication_Unpack(UART_HandleTypeDef *huart)
                         case PROTOCOL_CMD:
                             switch (USART1_RX_Buffer[i+1])
                             {
-                                case CMD_FLAG_CLEAR:
-                                    Keyboard_SHIFT_Flag=false;
-                                    Keyboard_ALPHA_Flag=false;
-                                    break;
-                                case CMD_REPORT_START:
-                                    sendreport_ready=true;
-                                    break;
-                                case CMD_REPORT_STOP:
-                                    sendreport=false;
-                                    sendreport_ready=false;
-                                    break;
                                 case CMD_RESET:
                                     __set_FAULTMASK(1);
                                     HAL_NVIC_SystemReset();

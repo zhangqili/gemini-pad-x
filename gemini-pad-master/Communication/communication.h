@@ -30,6 +30,11 @@ extern uint8_t u##_TX_Length;
 #define Communication_ETX(u) u##_TX_Buffer[USART1_TX_Length]=3;
 #define Communication_EOH(u) u##_TX_Buffer[USART1_TX_Length]=4;
 
+
+#define Communication_Add(u,a,b,len) u##_TX_Buffer[u##_TX_Length]=(a);\
+                               memcpy(u##_TX_Buffer+u##_TX_Length+1,(uint8_t*)&(b),(len));\
+                               if(u##_TX_Length<BUFFER_LENGTH)u##_TX_Length+=((len)+1);
+
 #define Communication_Add8(u,a,b) u##_TX_Buffer[u##_TX_Length]=(a);\
                                u##_TX_Buffer[u##_TX_Length+1]=(b);\
                                if(u##_TX_Length<BUFFER_LENGTH){u##_TX_Length+=2;}
@@ -120,6 +125,23 @@ typedef enum
     CMD_EEPROM_ENABLE,
     CMD_NA_0E,
     CMD_NA_0F,
+    //
+    CMD_KEYBOARD_TREE_SCAN,
+    CMD_NA_11,
+    CMD_NA_12,
+    CMD_NA_13,
+    CMD_NA_14,
+    CMD_NA_15,
+    CMD_NA_16,
+    CMD_NA_17,
+    CMD_NA_18,
+    CMD_NA_19,
+    CMD_NA_1A,
+    CMD_NA_1B,
+    CMD_NA_1C,
+    CMD_NA_1D,
+    CMD_NA_1E,
+    CMD_NA_1F,
     //
     CMD_RESET=0xFF,
 } USART_CMD;

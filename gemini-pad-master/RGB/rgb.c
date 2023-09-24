@@ -13,7 +13,7 @@
 #include "MB85RC16.h"
 
 #ifdef USE_RGB
-uint32_t RGB_Buffer[RGB_BUFFER_LENGTH];
+uint8_t RGB_Buffer[RGB_BUFFER_LENGTH];
 #endif
 rgb_global_config_t RGB_GlobalConfig;
 rgb_individual_config_t RGB_Configs[RGB_NUM];
