@@ -69,8 +69,6 @@ void main_menu_cb(void *menu)
     	lefl_link_frame_navigate(&mainframe, &statisticpage);
         break;
     case 2:
-        Communication_Add8(USART1, PROTOCOL_CMD,CMD_KEYBOARD_TREE_SCAN);
-        Communication_USART1_Transmit();
         lefl_link_frame_navigate(&mainframe, &externalkeyspage);
         break;
     case 3:

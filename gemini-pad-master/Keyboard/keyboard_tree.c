@@ -15,6 +15,8 @@
 
 #define TIMEOUT 5
 
+void DWT_Delay_us(volatile uint32_t microseconds);
+
 Keyboard_TNode_Type Keyboard_Tree_BaseType;
 Keyboard_TNode_Status Keyboard_Tree_BaseStatus;
 Keyboard_TNode Keyboard_TNodes[KEYBOARD_CHILD_NUM];
@@ -32,10 +34,12 @@ uint8_t Slave_SPI_TxBuffer[16];
 uint8_t Slave_SPI_RxBuffer[16];
 #endif
 
+
 void Keyboard_Tree_Init()
 {
     Keyboard_Tree_BaseType=KEYBOARD_TNODE_ROOT;
     Keyboard_Tree_BaseStatus=KEYBOARD_TNODE_CONNECTED;
+    Master_SPI_TxBuffer[0]=0x11;
     Slave_SPI_TxBuffer[0]=Keyboard_Tree_BaseStatus;
     for (uint8_t i = 0; i< KEYBOARD_CHILD_NUM; i++)
     {
@@ -75,6 +79,7 @@ void Keyboard_Tree_Scan()
     }
 }
 
+extern uint8_t count;
 void Keyboard_Tree_Detect()
 {
     for (uint8_t i = 0; i < 5; i++)
@@ -82,15 +87,28 @@ void Keyboard_Tree_Detect()
         HAL_GPIO_WritePin(SPI2_CS1_GPIO_Port, SPI2_CS1_Pin, GPIO_PIN_RESET);
         HAL_SPI_TransmitReceive(&SPI_MASTER, Master_SPI_TxBuffer, (uint8_t*)(&(Keyboard_TNodes[0].Status)), 1, TIMEOUT);
         HAL_GPIO_WritePin(SPI2_CS1_GPIO_Port, SPI2_CS1_Pin, GPIO_PIN_SET);
-        if(Keyboard_TNodes[0].Status==KEYBOARD_TNODE_READY)
+        count++;
+        if(Keyboard_TNodes[0].Status!=KEYBOARD_TNODE_READY)
         {
-            Keyboard_TNodes[0].Status=KEYBOARD_TNODE_ACTIVE;
-            HAL_GPIO_WritePin(SPI2_CS1_GPIO_Port, SPI2_CS1_Pin, GPIO_PIN_RESET);
-            HAL_SPI_TransmitReceive(&SPI_MASTER, Master_SPI_TxBuffer, (uint8_t*)(&(Keyboard_TNodes[0].Bitmap.len)), 2, TIMEOUT);
-            HAL_GPIO_WritePin(SPI2_CS1_GPIO_Port, SPI2_CS1_Pin, GPIO_PIN_SET);
-            Keyboard_Tree_ReportBitmap.len+=Keyboard_TNodes[0].Bitmap.len;
+            for (uint8_t j = 0; j < 5; j++)
+            {
+                HAL_GPIO_WritePin(SPI2_CS1_GPIO_Port, SPI2_CS1_Pin, GPIO_PIN_RESET);
+                HAL_SPI_TransmitReceive(&SPI_MASTER, Master_SPI_TxBuffer, (uint8_t*)(&(Keyboard_TNodes[0].Status)), 1, TIMEOUT);
+                HAL_GPIO_WritePin(SPI2_CS1_GPIO_Port, SPI2_CS1_Pin, GPIO_PIN_SET);
+                DWT_Delay_us(500);
+                if(Keyboard_TNodes[0].Status==KEYBOARD_TNODE_READY)
+                {
+                    Keyboard_TNodes[0].Status=KEYBOARD_TNODE_ACTIVE;
+                    HAL_GPIO_WritePin(SPI2_CS1_GPIO_Port, SPI2_CS1_Pin, GPIO_PIN_RESET);
+                    HAL_SPI_TransmitReceive(&SPI_MASTER, Master_SPI_TxBuffer, (uint8_t*)(&(Keyboard_TNodes[0].Bitmap.len)), 2, TIMEOUT);
+                    HAL_GPIO_WritePin(SPI2_CS1_GPIO_Port, SPI2_CS1_Pin, GPIO_PIN_SET);
+                    Keyboard_Tree_ReportBitmap.len+=Keyboard_TNodes[0].Bitmap.len;
+                    break;
+                }
+            }
             break;
         }
+        DWT_Delay_us(50);
     }
 
 
@@ -99,15 +117,16 @@ void Keyboard_Tree_Detect()
         HAL_GPIO_WritePin(SPI2_CS2_GPIO_Port, SPI2_CS2_Pin, GPIO_PIN_RESET);
         HAL_SPI_TransmitReceive(&SPI_MASTER, Master_SPI_TxBuffer, (uint8_t*)(&(Keyboard_TNodes[1].Status)), 1, TIMEOUT);
         HAL_GPIO_WritePin(SPI2_CS2_GPIO_Port, SPI2_CS2_Pin, GPIO_PIN_SET);
-        if(Keyboard_TNodes[0].Status==KEYBOARD_TNODE_READY)
+        if(Keyboard_TNodes[1].Status==KEYBOARD_TNODE_READY)
         {
-            Keyboard_TNodes[0].Status=KEYBOARD_TNODE_ACTIVE;
+            Keyboard_TNodes[1].Status=KEYBOARD_TNODE_ACTIVE;
             HAL_GPIO_WritePin(SPI2_CS2_GPIO_Port, SPI2_CS2_Pin, GPIO_PIN_RESET);
             HAL_SPI_TransmitReceive(&SPI_MASTER, Master_SPI_TxBuffer, (uint8_t*)(&(Keyboard_TNodes[1].Bitmap.len)), 2, TIMEOUT);
             HAL_GPIO_WritePin(SPI2_CS2_GPIO_Port, SPI2_CS2_Pin, GPIO_PIN_SET);
             Keyboard_Tree_ReportBitmap.len+=Keyboard_TNodes[1].Bitmap.len;
             break;
         }
+        DWT_Delay_us(50);
     }
 
 
@@ -116,15 +135,16 @@ void Keyboard_Tree_Detect()
         HAL_GPIO_WritePin(SPI2_CS3_GPIO_Port, SPI2_CS3_Pin, GPIO_PIN_RESET);
         HAL_SPI_TransmitReceive(&SPI_MASTER, Master_SPI_TxBuffer, (uint8_t*)(&(Keyboard_TNodes[2].Status)), 1, TIMEOUT);
         HAL_GPIO_WritePin(SPI2_CS3_GPIO_Port, SPI2_CS3_Pin, GPIO_PIN_SET);
-        if(Keyboard_TNodes[0].Status==KEYBOARD_TNODE_READY)
+        if(Keyboard_TNodes[2].Status==KEYBOARD_TNODE_READY)
         {
-            Keyboard_TNodes[0].Status=KEYBOARD_TNODE_ACTIVE;
+            Keyboard_TNodes[2].Status=KEYBOARD_TNODE_ACTIVE;
             HAL_GPIO_WritePin(SPI2_CS3_GPIO_Port, SPI2_CS3_Pin, GPIO_PIN_RESET);
             HAL_SPI_TransmitReceive(&SPI_MASTER, Master_SPI_TxBuffer, (uint8_t*)(&(Keyboard_TNodes[2].Bitmap.len)), 2, TIMEOUT);
             HAL_GPIO_WritePin(SPI2_CS3_GPIO_Port, SPI2_CS3_Pin, GPIO_PIN_SET);
             Keyboard_Tree_ReportBitmap.len+=Keyboard_TNodes[2].Bitmap.len;
             break;
         }
+        DWT_Delay_us(50);
     }
 
 
@@ -133,15 +153,16 @@ void Keyboard_Tree_Detect()
         HAL_GPIO_WritePin(SPI2_CS4_GPIO_Port, SPI2_CS4_Pin, GPIO_PIN_RESET);
         HAL_SPI_TransmitReceive(&SPI_MASTER, Master_SPI_TxBuffer, (uint8_t*)(Keyboard_TNodes[3].Status), 1, TIMEOUT);
         HAL_GPIO_WritePin(SPI2_CS4_GPIO_Port, SPI2_CS4_Pin, GPIO_PIN_SET);
-        if(Keyboard_TNodes[0].Status==KEYBOARD_TNODE_READY)
+        if(Keyboard_TNodes[3].Status==KEYBOARD_TNODE_READY)
         {
-            Keyboard_TNodes[0].Status=KEYBOARD_TNODE_ACTIVE;
+            Keyboard_TNodes[3].Status=KEYBOARD_TNODE_ACTIVE;
             HAL_GPIO_WritePin(SPI2_CS4_GPIO_Port, SPI2_CS4_Pin, GPIO_PIN_RESET);
             HAL_SPI_TransmitReceive(&SPI_MASTER, Master_SPI_TxBuffer, (uint8_t*)(&(Keyboard_TNodes[3].Bitmap.len)), 2, TIMEOUT);
             HAL_GPIO_WritePin(SPI2_CS4_GPIO_Port, SPI2_CS4_Pin, GPIO_PIN_SET);
             Keyboard_Tree_ReportBitmap.len+=Keyboard_TNodes[3].Bitmap.len;
             break;
         }
+        DWT_Delay_us(50);
     }
     Keyboard_Tree_BaseStatus=KEYBOARD_TNODE_READY;
 }
@@ -185,11 +206,12 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
                 HAL_SPI_TransmitReceive_IT(&SPI_SLAVE, &Keyboard_Tree_BaseStatus, Slave_SPI_RxBuffer, 1);
                 break;
             case KEYBOARD_TNODE_READY:
+                count++;
                 Keyboard_Tree_BaseStatus=KEYBOARD_TNODE_ACTIVE;
                 HAL_SPI_TransmitReceive_IT(&SPI_SLAVE, (uint8_t*)(&(Keyboard_Tree_ReportBitmap.len)), Slave_SPI_RxBuffer, 2);
                 break;
             case KEYBOARD_TNODE_ACTIVE:
-                HAL_SPI_TransmitReceive_IT(&SPI_MASTER, (uint8_t*)(Keyboard_Tree_ReportBitmap.data), Slave_SPI_RxBuffer, (Keyboard_Tree_ReportBitmap.len-1)/8+1);
+                HAL_SPI_TransmitReceive_IT(&SPI_SLAVE, (uint8_t*)(Keyboard_Tree_ReportBitmap.data), Slave_SPI_RxBuffer, (Keyboard_Tree_ReportBitmap.len-1)/8+1);
             default:
                 break;
         }

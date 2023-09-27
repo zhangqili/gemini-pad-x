@@ -146,11 +146,11 @@ void fezui_render_handler()
     {
         if(fezui.invert)
         {
-            fezui_veil(&(fezui),0,0,128,64,7-fezui.screensaver_countdown,1);
+            fezui_veil(&(fezui),0,0,128,64,(7-fezui.screensaver_countdown)>256?0:7-fezui.screensaver_countdown,1);
         }
         else
         {
-            fezui_veil(&(fezui),0,0,128,64,7-fezui.screensaver_countdown,0);
+            fezui_veil(&(fezui),0,0,128,64,(7-fezui.screensaver_countdown)>256?0:7-fezui.screensaver_countdown,0);
         }
         u8g2_SetPowerSave(&(fezui.u8g2),!fezui.screensaver_countdown);
     }

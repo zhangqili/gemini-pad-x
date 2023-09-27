@@ -19,7 +19,7 @@ lefl_page_t externalkeyspage={externalkeyspage_logic,externalkeyspage_draw,exter
 #define SPERATOR_X (WIDTH-80)
 
 static fezui_scrollview_t scrollview={.content_height=HEIGHT};
-static uint8_t selected_key_index;
+static uint8_t selected_listitem_index;
 static float target_ordinate=0;
 static float start_animation=0;
 
@@ -41,7 +41,7 @@ static fezui_cursor_t target_config_cursor;
 
 void externalkeys_menu_cb(void *m)
 {
-    current_target_id=&(Keyboard_Tree_IDs[((lefl_menu_t*)m)->selected_index][selected_key_index]);
+    current_target_id=&(Keyboard_Tree_IDs[((lefl_menu_t*)m)->selected_index][selected_listitem_index-1]);
     lefl_link_frame_navigate(&mainframe, &keylistpage);
 }
 
@@ -73,16 +73,16 @@ void externalkeyspage_logic(void *page)
     fezui_cursor_set(
         &target_cursor ,
         0,
-        selected_key_index*ROW_HEIGHT - (u8g2_int_t)scrollview.ordinate,
+        selected_listitem_index*ROW_HEIGHT - (u8g2_int_t)scrollview.ordinate,
         SPERATOR_X-7,
         ROW_HEIGHT);
-    if((selected_key_index+1)*ROW_HEIGHT-target_ordinate>64)
+    if((selected_listitem_index+1)*ROW_HEIGHT-target_ordinate>64)
     {
-        target_ordinate = (selected_key_index+1)*ROW_HEIGHT-64;
+        target_ordinate = (selected_listitem_index+1)*ROW_HEIGHT-64;
     }
-    if((selected_key_index)*ROW_HEIGHT<target_ordinate)
+    if((selected_listitem_index)*ROW_HEIGHT<target_ordinate)
     {
-        target_ordinate = (selected_key_index)*ROW_HEIGHT;
+        target_ordinate = (selected_listitem_index)*ROW_HEIGHT;
     }
     CONVERGE_TO_ROUNDED(scrollview.ordinate, target_ordinate, fezui.speed);
     CONVERGE_TO(start_animation, 1, fezui.speed);
@@ -95,10 +95,11 @@ void externalkeyspage_logic(void *page)
 void externalkeyspage_draw(void *page)
 {
     u8g2_SetFont(&(fezui.u8g2), u8g2_font_5x8_mr);
+    u8g2_DrawStr(&(fezui.u8g2),1,ROUND((ROW_HEIGHT*1 - 1 - scrollview.ordinate)*start_animation),"Scan");
     for(uint8_t i=0;i<Keyboard_Tree_ReportBitmap.len;i++)
     {
         sprintf(fezui_buffer,"ExKEY%d",i+1);
-        u8g2_DrawStr(&(fezui.u8g2),1,ROUND((ROW_HEIGHT*(i+1) - 1 - scrollview.ordinate)*start_animation),fezui_buffer);
+        u8g2_DrawStr(&(fezui.u8g2),1,ROUND((ROW_HEIGHT*(i+2) - 1 - scrollview.ordinate)*start_animation),fezui_buffer);
     }
     for(uint8_t i=0;i<externalkeys_menu.len;i++)
     {
@@ -122,17 +123,30 @@ void externalkeysmenu_up_cb(void *page)
     }
     else
     {
-        VAR_LOOP_DECREMENT(selected_key_index,0,Keyboard_Tree_ReportBitmap.len,1);
+        VAR_LOOP_DECREMENT(selected_listitem_index,0,Keyboard_Tree_ReportBitmap.len,1);
     }
-    keyid_prase(Keyboard_Tree_IDs[0][selected_key_index], binding_text, 128);
-    fezui_scrolling_text_init(&scrolling_text, 78, 0.2, u8g2_font_4x6_mr, binding_text);
+    if(selected_listitem_index)
+    {
+        keyid_prase(Keyboard_Tree_IDs[0][selected_listitem_index-1], binding_text, 128);
+        fezui_scrolling_text_init(&scrolling_text, 78, 0.2, u8g2_font_4x6_mr, binding_text);
 
-    keyid_prase(Keyboard_Tree_IDs[1][selected_key_index], shift_binding_text, 128);
-    fezui_scrolling_text_init(&shift_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, shift_binding_text);
+        keyid_prase(Keyboard_Tree_IDs[1][selected_listitem_index-1], shift_binding_text, 128);
+        fezui_scrolling_text_init(&shift_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, shift_binding_text);
 
-    keyid_prase(Keyboard_Tree_IDs[2][selected_key_index], alpha_binding_text, 128);
-    fezui_scrolling_text_init(&alpha_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, alpha_binding_text);
+        keyid_prase(Keyboard_Tree_IDs[2][selected_listitem_index-1], alpha_binding_text, 128);
+        fezui_scrolling_text_init(&alpha_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, alpha_binding_text);
+    }
+    else
+    {
+        keyid_prase(Keyboard_Tree_IDs[0][selected_listitem_index], binding_text, 128);
+        fezui_scrolling_text_init(&scrolling_text, 78, 0.2, u8g2_font_4x6_mr, "N/A");
 
+        keyid_prase(Keyboard_Tree_IDs[1][selected_listitem_index], shift_binding_text, 128);
+        fezui_scrolling_text_init(&shift_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, "N/A");
+
+        keyid_prase(Keyboard_Tree_IDs[2][selected_listitem_index], alpha_binding_text, 128);
+        fezui_scrolling_text_init(&alpha_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, "N/A");
+    }
 }
 
 void externalkeysmenu_down_cb(void *page)
@@ -143,17 +157,30 @@ void externalkeysmenu_down_cb(void *page)
     }
     else
     {
-        VAR_LOOP_INCREMENT(selected_key_index,0,Keyboard_Tree_ReportBitmap.len,1);
+        VAR_LOOP_INCREMENT(selected_listitem_index,0,Keyboard_Tree_ReportBitmap.len,1);
     }
-    keyid_prase(Keyboard_Tree_IDs[0][selected_key_index], binding_text, 128);
-    fezui_scrolling_text_init(&scrolling_text, 78, 0.2, u8g2_font_4x6_mr, binding_text);
+    if(selected_listitem_index)
+    {
+        keyid_prase(Keyboard_Tree_IDs[0][selected_listitem_index-1], binding_text, 128);
+        fezui_scrolling_text_init(&scrolling_text, 78, 0.2, u8g2_font_4x6_mr, binding_text);
 
-    keyid_prase(Keyboard_Tree_IDs[1][selected_key_index], shift_binding_text, 128);
-    fezui_scrolling_text_init(&shift_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, shift_binding_text);
+        keyid_prase(Keyboard_Tree_IDs[1][selected_listitem_index-1], shift_binding_text, 128);
+        fezui_scrolling_text_init(&shift_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, shift_binding_text);
 
-    keyid_prase(Keyboard_Tree_IDs[2][selected_key_index], alpha_binding_text, 128);
-    fezui_scrolling_text_init(&alpha_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, alpha_binding_text);
+        keyid_prase(Keyboard_Tree_IDs[2][selected_listitem_index-1], alpha_binding_text, 128);
+        fezui_scrolling_text_init(&alpha_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, alpha_binding_text);
+    }
+    else
+    {
+        keyid_prase(Keyboard_Tree_IDs[0][selected_listitem_index], binding_text, 128);
+        fezui_scrolling_text_init(&scrolling_text, 78, 0.2, u8g2_font_4x6_mr, "N/A");
 
+        keyid_prase(Keyboard_Tree_IDs[1][selected_listitem_index], shift_binding_text, 128);
+        fezui_scrolling_text_init(&shift_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, "N/A");
+
+        keyid_prase(Keyboard_Tree_IDs[2][selected_listitem_index], alpha_binding_text, 128);
+        fezui_scrolling_text_init(&alpha_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, "N/A");
+    }
 }
 
 void externalkeyspage_load(void *page)
@@ -165,15 +192,28 @@ void externalkeyspage_load(void *page)
             1,
             HEIGHT);
     start_animation=0;
-    keyid_prase(Keyboard_Tree_IDs[0][selected_key_index], binding_text, 128);
-    fezui_scrolling_text_init(&scrolling_text, 78, 0.2, u8g2_font_4x6_mr, binding_text);
+    if(selected_listitem_index)
+    {
+        keyid_prase(Keyboard_Tree_IDs[0][selected_listitem_index-1], binding_text, 128);
+        fezui_scrolling_text_init(&scrolling_text, 78, 0.2, u8g2_font_4x6_mr, binding_text);
 
-    keyid_prase(Keyboard_Tree_IDs[1][selected_key_index], shift_binding_text, 128);
-    fezui_scrolling_text_init(&shift_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, shift_binding_text);
+        keyid_prase(Keyboard_Tree_IDs[1][selected_listitem_index-1], shift_binding_text, 128);
+        fezui_scrolling_text_init(&shift_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, shift_binding_text);
 
-    keyid_prase(Keyboard_Tree_IDs[2][selected_key_index], alpha_binding_text, 128);
-    fezui_scrolling_text_init(&alpha_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, alpha_binding_text);
+        keyid_prase(Keyboard_Tree_IDs[2][selected_listitem_index-1], alpha_binding_text, 128);
+        fezui_scrolling_text_init(&alpha_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, alpha_binding_text);
+    }
+    else
+    {
+        keyid_prase(Keyboard_Tree_IDs[0][selected_listitem_index], binding_text, 128);
+        fezui_scrolling_text_init(&scrolling_text, 78, 0.2, u8g2_font_4x6_mr, "N/A");
 
+        keyid_prase(Keyboard_Tree_IDs[1][selected_listitem_index], shift_binding_text, 128);
+        fezui_scrolling_text_init(&shift_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, "N/A");
+
+        keyid_prase(Keyboard_Tree_IDs[2][selected_listitem_index], alpha_binding_text, 128);
+        fezui_scrolling_text_init(&alpha_scrolling_text, 78, 0.2, u8g2_font_4x6_mr, "N/A");
+    }
     scrollview.content_height=Keyboard_Tree_ReportBitmap.len*ROW_HEIGHT;
     lefl_key_attach(&KEY_KNOB, KEY_EVENT_DOWN, LAMBDA(void,(void*k)
     {
@@ -189,14 +229,22 @@ void externalkeyspage_load(void *page)
     }));
     lefl_key_attach(&KEY_WHEEL, KEY_EVENT_DOWN, LAMBDA(void,(void*k)
     {
-        if(key_selected)
-        {
-            lefl_menu_click(&externalkeys_menu);
-        }
-        else
-        {
-            key_selected=true;
-        }
+            if(key_selected)
+            {
+                lefl_menu_click(&externalkeys_menu);
+            }
+            else
+            {
+                if(selected_listitem_index)
+                {
+                    key_selected=true;
+                }
+                else
+                {
+                    Communication_Add8(USART1, PROTOCOL_CMD,CMD_KEYBOARD_TREE_SCAN);
+                    Communication_USART1_Transmit();
+                }
+            }
     }));
     lefl_key_attach(&KEY_KNOB_CLOCKWISE, KEY_EVENT_DOWN, LAMBDA(void,(void*k){externalkeysmenu_down_cb(NULL);}));
     lefl_key_attach(&KEY_KNOB_ANTICLOCKWISE, KEY_EVENT_DOWN, LAMBDA(void,(void*k){externalkeysmenu_up_cb(NULL);}));

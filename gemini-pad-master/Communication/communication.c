@@ -167,8 +167,11 @@ void Communication_Pack()
     Communication_Add32(USART1, PROTOCOL_ANALOG3_RAW,Keyboard_AdvancedKeys[2].raw);
     Communication_Add32(USART1, PROTOCOL_ANALOG4_RAW,Keyboard_AdvancedKeys[3].raw);
     Communication_Add8(USART1, PROTOCOL_SCAN_COUNT, ADC_Conversion_Count);
-
     Communication_Add8(USART1, PROTOCOL_DEBUG,(uint8_t)(Keyboard_Tree_BaseStatus));
+    extern uint8_t Slave_SPI_RxBuffer[16];
+    extern uint8_t count;
+    //Communication_Add8(USART1, PROTOCOL_DEBUG,(uint8_t)(Keyboard_TNodes[0].Status));
+    //Communication_Add8(USART1, PROTOCOL_DEBUG,(uint8_t)(count));
     //Communication_Add(3,4);
 }
 
