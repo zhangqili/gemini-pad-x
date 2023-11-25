@@ -64,7 +64,8 @@
 /* USER CODE BEGIN PV */
 
 uint8_t count=0;
-uint8_t cmd_buffer;
+volatile uint8_t cmd_buffer;
+volatile bool RGB_Update_Flag=false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,9 +78,9 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 /**
 * @brief  初始化时间戳
-* @param  �?
-* @retval �?
-* @note   使用延时函数前，必须调用本函�?
+* @param  �?????
+* @retval �?????
+* @note   使用延时函数前，必须调用本函�?????
 */
 int DWT_Init(void)
 {
@@ -162,6 +163,7 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI3_Init();
   MX_TIM2_Init();
+  MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
   DWT_Init();
   lefl_bit_array_init(&Keyboard_KeyArray, (size_t*)(Keyboard_ReportBuffer+2), 168);
@@ -184,6 +186,7 @@ int main(void)
   RGB_TurnOff();
   HAL_TIM_Base_Start_IT(&htim6);
   HAL_TIM_Base_Start_IT(&htim7);
+  HAL_TIM_Base_Start_IT(&htim16);
   HAL_TIM_Encoder_Start_IT(&htim3,TIM_CHANNEL_1);
   HAL_TIM_Encoder_Start_IT(&htim8,TIM_CHANNEL_1);
   MX_USART1_UART_Init();
@@ -199,7 +202,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      HAL_Delay(1);
       if(cmd_buffer)
       {
           switch (cmd_buffer)
@@ -229,6 +231,11 @@ int main(void)
           }
           cmd_buffer=CMD_NULL;
 
+      }
+      if(RGB_Update_Flag)
+      {
+          RGB_Update_Flag=false;
+          RGB_Update();
       }
 
       switch(Keyboard_Tree_BaseStatus)
@@ -340,7 +347,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     }
     Communication_USART1_Transmit();
 
-    RGB_Update();
     Analog_Clean();
 
   }
@@ -348,6 +354,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if (htim->Instance==TIM6)
   {
 
+  }
+  if (htim->Instance==TIM16)
+  {
+    RGB_Update_Flag=true;
   }
 }
 

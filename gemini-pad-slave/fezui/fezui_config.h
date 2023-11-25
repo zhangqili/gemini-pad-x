@@ -12,7 +12,7 @@
 #define HEIGHT                64
 #define BUFFER_LENGTH         64
 #define NUMBER_STRING_LENGTH  BUFFER_LENGTH
-#define REFRESH_RATE          170
+#define REFRESH_RATE          168
 #define KPS_HISTORY_LENGTH    65
 #define ADVANCED_KEY_NUM      4
 #define KEY_NUM               8

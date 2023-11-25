@@ -18,7 +18,7 @@
 void DWT_Delay_us(volatile uint32_t microseconds);
 
 Keyboard_TNode_Type Keyboard_Tree_BaseType;
-Keyboard_TNode_Status Keyboard_Tree_BaseStatus;
+volatile Keyboard_TNode_Status Keyboard_Tree_BaseStatus;
 Keyboard_TNode Keyboard_TNodes[KEYBOARD_CHILD_NUM];
 static lefl_bit_array_unit_t Keyboard_Tree_BitmapBuffer[KEYBOARD_CHILD_NUM][KEYBOARD_CHILD_KEY_MAX_NUM/(8*sizeof(lefl_bit_array_unit_t))];
 static lefl_bit_array_unit_t Keyboard_Tree_ReportBuffer[KEYBOARD_TREE_BUFFER_MAX_SIZE/(8*sizeof(lefl_bit_array_unit_t))];

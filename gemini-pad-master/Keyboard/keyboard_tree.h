@@ -47,7 +47,7 @@ typedef struct __Keyboard_TNode
 } Keyboard_TNode;
 
 extern Keyboard_TNode_Type Keyboard_Tree_BaseType;
-extern Keyboard_TNode_Status Keyboard_Tree_BaseStatus;
+extern volatile Keyboard_TNode_Status Keyboard_Tree_BaseStatus;
 extern lefl_bit_array_t Keyboard_Tree_ReportBitmap;
 
 #ifdef KEYBOARD_MASTER_ON
